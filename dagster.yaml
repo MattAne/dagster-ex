@@ -1,7 +1,7 @@
+# Use Podman socket mapped to /var/run/docker.sock inside containers launched by Dagster
 scheduler:
   module: dagster.core.scheduler
   class: DagsterDaemonScheduler
-
 
 run_coordinator:
   module: dagster.core.run_coordinator
@@ -21,10 +21,14 @@ run_launcher:
       - DAGSTER_POSTGRES_USER
       - DAGSTER_POSTGRES_PASSWORD
       - DAGSTER_POSTGRES_DB
+      # Not strictly required if mapping to /var/run/docker.sock; uncomment if you prefer explicit host:
+      # - DOCKER_HOST
     network: docker_dagster_network
     container_kwargs:
-      volumes: # Make docker client accessible to any launched containers as well
-        - /var/run/docker.sock:/var/run/docker.sock
+      volumes:
+        # For rootless Podman: set PODMAN_UID to your user id; webserver/daemon map it to /var/run/docker.sock
+        # The run containers will get /var/run/docker.sock inside, pointing to the host Podman socket.
+        - /run/user/1000/podman/podman.sock:/var/run/docker.sock
         - /tmp/io_manager_storage:/tmp/io_manager_storage
 
 run_storage:

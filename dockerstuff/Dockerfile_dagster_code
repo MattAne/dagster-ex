@@ -13,6 +13,7 @@ RUN pip install \
 ENV DAGSTER_NAME dagster
 ENV DBT_NAME dbt
 
+
 # dbt projektet
 #WORKDIR /opt/dagster/app
 #ADD source dest#ADD https://github.com/MattAne/dbt-ex/tree/97251abbd05ad56f4fef61ddb3117edf92c8feab/dbt /opt/$DBT_NAME/app
@@ -36,7 +37,7 @@ RUN pip install -e /opt/app/dagster_proj
 # Run dagster code server on port 4000
 EXPOSE 4000
 
-HEALTHCHECK --timeout=1s --start-period=3s --interval=3s --retries=20 CMD ["dagster", "api", "grpc-health-check", "-p", "4000"]
+#HEALTHCHECK --timeout=1s --start-period=3s --interval=3s --retries=20 CMD ["dagster", "api", "grpc-health-check", "-p", "4000"]
 
 # CMD allows this to be overridden from run launchers or executors to execute runs and steps
 CMD ["dagster", "code-server", "start", "-h", "0.0.0.0", "-p", "4000", "-f", "/opt/app/dagster_proj/src/dagster_proj/definitions.py"]
