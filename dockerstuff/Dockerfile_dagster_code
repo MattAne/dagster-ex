@@ -1,5 +1,7 @@
 FROM python:3.12-slim
 
+RUN apt-get update && apt-get install -y git
+
 RUN pip install \
     dagster \
     dagster-postgres \
@@ -7,18 +9,27 @@ RUN pip install \
     dbt-core \
     dbt-sqlserver \
     dagster-dbt
-# NY
-WORKDIR /opt/dagster/app
-COPY /dbt /opt/dagster/app/dbt
-# Add code location code
-WORKDIR /opt/dagster/app/dagster_dev_project
-#COPY /dagster_app/ /opt/dagster/app
 
-#RUN mkdir -p dagster_dev_project
-#COPY /dagster_dev_project/pyproject.toml /opt/dagster/app
-COPY /dagster_dev_project /opt/dagster/app/dagster_dev_project
+ENV DAGSTER_NAME dagster
+ENV DBT_NAME dbt
 
-RUN pip install -e /opt/dagster/app/dagster_dev_project
+# dbt projektet
+#WORKDIR /opt/dagster/app
+#ADD source dest#ADD https://github.com/MattAne/dbt-ex/tree/97251abbd05ad56f4fef61ddb3117edf92c8feab/dbt /opt/$DBT_NAME/app
+#COPY /dbt /opt/dagster/app/dbt
+
+# dagsterprojektet
+RUN mkdir -p /opt/app/dagster
+RUN git clone --depth 1 --filter=blob:none --sparse https://github.com/MattAne/dagster-ex.git /tmp/repo
+WORKDIR /tmp/repo
+RUN git sparse-checkout set dagster
+RUN mv dagster /opt/app
+#
+#WORKDIR /opt/app/dagster
+#ADD https://github.com/MattAne/dagster-ex/tree/b5df11612b2cf8b6bee6f7e80fdad7c39e921b3c/dagster /opt/app/dagster
+WORKDIR /opt/app/dagster/src/dagster
+#WORKDIR /opt/app/dagster
+#RUN pip install -e /opt/app/dagster
 
 # Run dagster code server on port 4000
 EXPOSE 4000
@@ -26,4 +37,4 @@ EXPOSE 4000
 HEALTHCHECK --timeout=1s --start-period=3s --interval=3s --retries=20 CMD ["dagster", "api", "grpc-health-check", "-p", "4000"]
 
 # CMD allows this to be overridden from run launchers or executors to execute runs and steps
-CMD ["dagster", "code-server", "start", "-h", "0.0.0.0", "-p", "4000", "-f", "/opt/dagster/app/dagster_dev_project/src/dagster_dev_project/definitions.py"]
+CMD ["dagster", "code-server", "start", "-h", "0.0.0.0", "-p", "4000", "-f", "definitions.py"]
