@@ -19,17 +19,19 @@ ENV DBT_NAME dbt
 #COPY /dbt /opt/dagster/app/dbt
 
 # dagsterprojektet
-RUN mkdir -p /opt/app/dagster
+RUN mkdir -p /opt/app/dagster_proj
 RUN git clone --depth 1 --filter=blob:none --sparse https://github.com/MattAne/dagster-ex.git /tmp/repo
 WORKDIR /tmp/repo
-RUN git sparse-checkout set dagster
-RUN mv dagster /opt/app
+RUN git sparse-checkout set dagster_proj
+RUN mv dagster_proj /opt/app
 #
 #WORKDIR /opt/app/dagster
 #ADD https://github.com/MattAne/dagster-ex/tree/b5df11612b2cf8b6bee6f7e80fdad7c39e921b3c/dagster /opt/app/dagster
-WORKDIR /opt/app/dagster/src/dagster
-#WORKDIR /opt/app/dagster
-#RUN pip install -e /opt/app/dagster
+
+#COPY /dagster_proj /opt/app/dagster_proj
+#WORKDIR /opt/app/dagster/src/dagster
+WORKDIR /opt/app/dagster_proj
+RUN pip install -e /opt/app/dagster_proj
 
 # Run dagster code server on port 4000
 EXPOSE 4000
@@ -37,4 +39,4 @@ EXPOSE 4000
 HEALTHCHECK --timeout=1s --start-period=3s --interval=3s --retries=20 CMD ["dagster", "api", "grpc-health-check", "-p", "4000"]
 
 # CMD allows this to be overridden from run launchers or executors to execute runs and steps
-CMD ["dagster", "code-server", "start", "-h", "0.0.0.0", "-p", "4000", "-f", "definitions.py"]
+CMD ["dagster", "code-server", "start", "-h", "0.0.0.0", "-p", "4000", "-f", "/opt/app/dagster_proj/src/dagster_proj/definitions.py"]
